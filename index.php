@@ -42,6 +42,8 @@
     if(isset($_POST['db_name']))
     {
         $db_name=$_POST['db_name'];
+        session_start();
+        $_SESSION['db_name']=$db_name;
         $string1='<label for="fname">First Name</label><input type="text" id="fname" name="update_fname"><label for="lname">Last Name</label><input type="text" id="lname" name="update_lname"><select name="mode"><option value="insert">Insert</option><option value="update">Update</option><option value="delete">Delete</option></select><p style="text-align:center;"><input type="submit" id="insert" value="Submit"></p>';
         echo "<script>alert('creating database $db_name');
         document.getElementById('db_info').innerHTML='';
@@ -56,12 +58,13 @@
         {
                 $mng = new MongoDB\Driver\Manager(); // Driver Object created
         $bulk = new MongoDB\Driver\BulkWrite;
-                $db_name=$_POST['db_name'];
+                session_start();
+                $db_name=$_SESSION['db_name'];
             $fname=$_POST['update_fname'];
             $lname=$_POST['update_lname'];
             $doc = ["_id" => new MongoDB\BSON\ObjectID, "fname" => "$fname", "lname" => "$lname"];
             $bulk->insert($doc);
-            $mng->executeBulkWrite("names.collection1", $bulk);
+            $mng->executeBulkWrite($db_name.".collection1", $bulk);
             echo "<script>alert('Successfully inserted')</script>";
         }
         elseif($mode=="update")
@@ -71,12 +74,13 @@
             $old_fname=$_POST['update_fname'];
             $old_lname=$_POST['update_lname'];
             session_start();
+            $db_name=$_SESSION['db_name'];
             $_SESSION['update_fname']=$old_fname;
             $_SESSION['update_lname']=$old_lname;
             $string2='<label for="fname">First Name</label><input type="text" id="fname" name="fname"><label for="lname">Last Name</label><input type="text" id="lname" name="lname"><p style="text-align:center;"><input type="submit" id="insert" value="Update"></p>';
             echo "<script>document.getElementById('db_info').innerHTML='';document.getElementById('forms1').innerHTML='".$string2."'</script>";
             $query = new MongoDB\Driver\Query([]);
-             $rows = $mng->executeQuery("names.collection1", $query);
+            $rows = $mng->executeQuery($db_name.".collection1", $query);
             foreach ($rows as $row)
             {
               if(($row->fname=="$old_fname") and ($row->lname=="$old_lname"))
@@ -89,14 +93,15 @@
         {
             $mng = new MongoDB\Driver\Manager(); // Driver Object created
         $bulk = new MongoDB\Driver\BulkWrite;
-
+                session_start();
+                $db_name=$_SESSION['dbname'];
             $fname=$_POST['update_fname'];
             $lname=$_POST['update_lname'];
              $bulk->delete(
                 ['fname' => "$fname",'lname' => "$lname"]
         );
 
-        $result = $mng->executeBulkWrite('names.collection1', $bulk);
+        $result = $mng->executeBulkWrite($db_name.'.collection1', $bulk);
             echo "<script>alert('hi')</script>";
         }
         else
@@ -105,6 +110,7 @@
     if(isset($_POST['fname']))
     {
         session_start();
+        $db_name=$_SESSION['db_name'];
         $mng = new MongoDB\Driver\Manager(); // Driver Object created
         $bulk = new MongoDB\Driver\BulkWrite;
         $new_fname=$_POST['fname'];
@@ -117,6 +123,6 @@
                 ['multi' => false, 'upsert' => false]
         );
 
-        $result = $mng->executeBulkWrite('names.collection1', $bulk);
+        $result = $mng->executeBulkWrite($db_name.'.collection1', $bulk);
     }
 ?>
